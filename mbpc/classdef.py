@@ -13,6 +13,7 @@ def Self():
 def Base(self):
     @self.method
     def toString(debug: bool = False):
+        print(self, self.__dict__)
         if debug:
             return self.__dict__
         return f"{self.__classname__} object"
@@ -32,6 +33,10 @@ def classdef(superClass = Base, *interfaces):
     def decorator(decoratedClass):
         def decorated(*args, **kwargs):
             self = Self()
+            args = list(args)
+            if args and type(args[0]) == type(self): 
+                self = args[0]
+                args.pop(0)
 
             def initialize(*args, **kwargs):
                 self.__dict__ |= superClass(self, *args, **kwargs).__dict__
