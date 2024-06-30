@@ -20,12 +20,14 @@ def Base(self):
     return self
 
 Base.__mbpctype__ = "class"
+Base.__interfaces__ = []
 
 def classdef(superClass = Base, *interfaces):
+    interfaces = list(interfaces)
     if superClass.__mbpctype__ == "interface":
-        interfaces = list(interfaces)
         interfaces.insert(0, superClass)
         superClass = Base
+    interfaces.extend(superClass.__interfaces__)
 
     def decorator(decoratedClass):
         def decorated(*args, **kwargs):
@@ -59,7 +61,24 @@ def classdef(superClass = Base, *interfaces):
         def method(f):
             decorated.__dict__[f.__name__] = f
 
+        decorated.__dict__ = superClass.__dict__ | decorated.__dict__
         decorated.method = method
         decorated.__mbpctype__ = "class"
+        decorated.__interfaces__ = interfaces
+
+        def initialize():
+            for interface in list(reversed(interfaces)):
+                for k in interface.__methods__.keys():
+                    if not k in decorated.__dict__:
+                        raise InterfaceException(
+                            f"Class \"{decoratedClass.__name__}\" does not implement the interface \"{interface.__interface__.__interfacename__}\" (missing the static method \"{k}\")."
+                        )
+                    
+                    if not signature(decorated.__dict__[k]) == interface.__methods__[k]:
+                        raise InterfaceException(
+                            f"Class \"{decoratedClass.__name__}\" does not implement the interface \"{interface.__interface__.__interfacename__}\" (incorrectly defining the static method \"{k}\")."
+                        )
+                    
+        decorated.initialize = initialize
         return decorated
     return decorator

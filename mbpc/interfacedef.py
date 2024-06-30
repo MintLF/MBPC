@@ -26,5 +26,12 @@ def interfacedef(*superInterfaces):
         
         decorated.__interface__ = interface
         decorated.__mbpctype__ = "interface"
+    
+        decorated.__methods__ = {}
+        def method(func):
+            decorated.__methods__[func.__name__] = signature(func)
+
+        decorated.method = method
+        
         return decorated
     return decorator

@@ -14,6 +14,9 @@ def Hashable2(interface):
     @interface.method
     def hash2() -> str: ...
 
+@Hashable2.method
+def add(a: int, b: int) -> int: ...
+
 @classdef(Hashable2)
 def Cls(self, a: int = 1):
     self.super.initialize()
@@ -30,6 +33,11 @@ def Cls(self, a: int = 1):
     @self.method
     def hash2() -> str:
         return str(self.a.__hash__())
+    
+@Cls.method
+def add(a: int, b: int) -> int: return a + b
+
+Cls.initialize()
 
 class TestImplementInterface(unittest.TestCase):
     def setUp(self):
@@ -38,5 +46,8 @@ class TestImplementInterface(unittest.TestCase):
     def testRunningMethod(self):
         self.obj.increased(by = 3)
         self.assertEqual(self.obj.hash2(), str(hash(5)))
+
+    def testRunningStaticMethod(self):
+        self.assertEqual(Cls.add(2, 3), 5)
 
 unittest.main()
